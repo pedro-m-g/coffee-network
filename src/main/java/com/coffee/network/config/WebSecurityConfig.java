@@ -11,18 +11,23 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.coffee.network.filters.JwtFilter;
 import com.coffee.network.services.CoffeeUserDetailsService;
 
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   private CoffeeUserDetailsService userDetailsService;
+  private JwtFilter jwtFilter;
 
   public WebSecurityConfig(
-    @Autowired CoffeeUserDetailsService userDetailsService
+    @Autowired CoffeeUserDetailsService userDetailsService,
+    @Autowired JwtFilter jwtFilter
   ) {
     this.userDetailsService = userDetailsService;
+    this.jwtFilter = jwtFilter;
   }
 
   @Bean
@@ -51,8 +56,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .authenticated()
     .and()
       .csrf().disable()
-      .sessionManagement()
-        .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    .sessionManagement()
+      .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    .and()
+      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
   }
 
 }
