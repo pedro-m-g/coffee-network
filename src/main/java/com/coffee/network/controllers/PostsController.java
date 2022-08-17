@@ -1,5 +1,6 @@
 package com.coffee.network.controllers;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.coffee.network.models.Post;
+import com.coffee.network.models.User;
 import com.coffee.network.repositories.PostsRepository;
+import com.coffee.network.repositories.UsersRepository;
 import com.coffee.network.requests.CreatePostRequest;
 
 @RestController
@@ -25,11 +28,14 @@ import com.coffee.network.requests.CreatePostRequest;
 public class PostsController {
 
   private PostsRepository postsRepository;
+  private UsersRepository usersRepository;
 
   public PostsController(
-    @Autowired PostsRepository postsRepository
+    @Autowired PostsRepository postsRepository,
+    @Autowired UsersRepository usersRepository
   ) {
     this.postsRepository = postsRepository;
+    this.usersRepository = usersRepository;
   }
 
   @GetMapping("")
@@ -38,9 +44,14 @@ public class PostsController {
   }
 
   @PostMapping("")
-  public void createPost(@RequestBody CreatePostRequest request) {
+  public void createPost(
+    @RequestBody CreatePostRequest request,
+    Principal principal
+  ) {
+    User user = currentUser(principal);
     Post post = new Post();
     post.setContent(request.getContent());
+    post.setUser(user);
     postsRepository.save(post);
   }
 
@@ -73,6 +84,15 @@ public class PostsController {
         new ResponseStatusException(HttpStatus.NOT_FOUND)
       );
     postsRepository.delete(post);
+  }
+
+  private User currentUser(Principal principal) {
+    String username = principal.getName();
+    User user = usersRepository.findByUsername(username)
+        .orElseThrow(() ->
+          new ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        );
+    return user;
   }
 
 }
