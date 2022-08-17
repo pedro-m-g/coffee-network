@@ -23,17 +23,15 @@ public class JwtFilter extends OncePerRequestFilter {
   private JwtService jwtService;
 
   public JwtFilter(
-    @Autowired JwtService jwtService
-  ) {
+      @Autowired JwtService jwtService) {
     this.jwtService = jwtService;
   }
 
   @Override
   protected void doFilterInternal(
-    HttpServletRequest request,
-    HttpServletResponse response,
-    FilterChain filterChain
-  ) throws ServletException, IOException {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain filterChain) throws ServletException, IOException {
     String token = request.getHeader("Authorization");
     if (token == null || token.trim().isEmpty()) {
       filterChain.doFilter(request, response);
@@ -44,12 +42,10 @@ public class JwtFilter extends OncePerRequestFilter {
       filterChain.doFilter(request, response);
       return;
     }
-    UsernamePasswordAuthenticationToken auth =
-      new UsernamePasswordAuthenticationToken(
+    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
         username,
         token,
-        Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"))
-      );
+        Arrays.asList(new SimpleGrantedAuthority("ROLE_USER")));
     SecurityContextHolder.getContext().setAuthentication(auth);
     filterChain.doFilter(request, response);
   }
